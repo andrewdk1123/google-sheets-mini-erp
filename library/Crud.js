@@ -34,15 +34,6 @@ function createRecord(workbookId, insertRange, valueArray) {
 }
 
 /**
- * Generate a key value for a row
- * @return {String} key -  A unique identifier to specify the record
- */
-function generateKey() {
-  let key = Utilities.getUuid();
-  return key;
-}
-
-/**
  * Validate a key value in a Google Spreadsheet.
  * @param {String} keyValue - A unique identifier to specify the record.
  * @param {String} workbookId - A String value to specify the Google Sheet ID for the workbook.
@@ -54,34 +45,6 @@ function checkId(keyValue, workbookId, sheetName, keyCol) {
     // Read the key values from the specified column and check if keyValue exists
     const keyList = readRecord(workbookId, sheetName, '', false, true, keyCol, keyCol).flat();
     return keyList.includes(keyValue);
-}
-
-/**
- * Create a new record with a key value in the first column
- * @param {String} workbookId - A String value to specify Google Sheet ID for the workbook
- * @param {String} insertRange - A String value to specify a range where the valueArray to be appended. e.g., "Sheet!A2:G"
- * @param {Array} valueArray - Entry values submitted from the client-side code
- */
-function createRecordWithKey(workbookId, insertRange, valueArray) {
-  try {
-    // Generate a unique key
-    const key = generateKey();
-
-    // Create a new row data object
-    const newRowData = [];
-    newRowData.push([key]); // Add the key as the first column
-    newRowData.push(valueArray); // Add the remaining values
-
-    // Create an append request
-    const appendRequest = Sheets.newAppendCellsRequest();
-    appendRequest.sheetId = workbookId;
-    appendRequest.rows = newRowData;
-
-    // Append the new row to the specified range
-    Sheets.Spreadsheets.Values.append(newRowData, workbookId, insertRange, { valueInputOption: "RAW" });
-  } catch (err) {
-    console.error("Failed with error: %s", err.message);
-  }
 }
 
 /**
