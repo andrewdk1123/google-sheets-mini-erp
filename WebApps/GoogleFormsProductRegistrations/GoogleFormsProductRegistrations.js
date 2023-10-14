@@ -12,7 +12,6 @@
 FORM_ID = "1CAqPut9N5iOxG8-vJYRoVOoqkcTzULUKtODp_ABupEE";
 SPREADSHEET_ID = "1VeYme8dpFxz1fDcHz1uzTb_rFh4zjsVyaCvLwKwt8BU";
 REFERENCE_SHEET = "Customer Info";
-DESTINATION_SHEET = "Product Info";
 
 // Triggered when the form is opened
 function onOpen() {
