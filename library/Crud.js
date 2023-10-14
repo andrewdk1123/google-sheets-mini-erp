@@ -10,12 +10,11 @@
  * https://developers.google.com/sheets/api/samples/rowcolumn#delete_rows_or_columns
  */
 
-
 /**
  * Append a new record to a Google Sheet.
  * @param {string} spreadsheetId - Google Sheet ID.
  * @param {string} sheetName - Name of the sheet within the spreadsheet.
- * @param {Array|Object} data - Data to be added to the sheet.
+ * @param {Array} data - Data to be added to the sheet.
  */
 function createRecord(spreadsheetId, sheetName, data) {
   try {
@@ -176,6 +175,19 @@ function searchRecordByKey(key, spreadsheetId, sheetName, keyCol, firstCol, last
   const range = `${sheetName}!${firstCol}${rowIndex + 2}:${lastCol}${rowIndex + 2}`;
   const rowData = readRecord(spreadsheetId, sheetName, range);
   return { rowData, rowIndex: rowIndex + 2, range };
+}
+
+/**
+ * Get all records from a sheet, excluding headers
+ * @param {String} spreadsheetId - Google Sheet ID
+ * @param {String} sheetName - Sheet name in the spreadsheet
+ * @param {String} firstCol - The first column in the row, e.g., "A"
+ * @param {String} lastCol - The last column in the row, e.g., "G"
+ * @return {Array} allRecords - An array containing rows of data
+ */
+function getAllRecords(spreadsheetId, sheetName, firstCol, lastCol) {
+  const allRecords = readRecord(spreadsheetId, sheetName, '', false, true, firstCol, lastCol);
+  return allRecords;
 }
 
 /**
