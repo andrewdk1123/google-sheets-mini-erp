@@ -1,7 +1,7 @@
 /**
  * Google Apps Script codes to Create, Read, Update, and Delete a record in a Google Spreadsheet
  * By: andrewdklee.com
- * Github: https:github.com/andrewdk1123/google-sheets-crud-app
+ * Github: https:github.com/andrewdk1123/google-sheets-mini-erp
  * REF:
  * https://developers.google.com/sheets/api/guides/values#append_values
  * https://developers.google.com/sheets/api/guides/values#read

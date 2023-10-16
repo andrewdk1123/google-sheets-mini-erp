@@ -1,7 +1,7 @@
 /**
  * Test cases for the functions in Crud.js
  * By: andrewdklee.com
- * Github: https:github.com/andrewdk1123/google-sheets-crud-app
+ * Github: https:github.com/andrewdk1123/google-sheets-mini-erp
  */
 
 // Set constants
