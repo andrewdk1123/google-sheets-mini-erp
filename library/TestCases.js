@@ -9,33 +9,11 @@ const SPREADSHEET = "18grurtwkjYCNo2OoANzt6Dr2Q2H4fpHCv5MT9EoiNz4";
 const SHEET_NAME = "Test Sheet";
 const KEY_COL = "A"
 
-// Test cases for the generateKey function
-function testGenerateKey() {
-  // Test case 1: Generate a key
-  console.log('Test case 1:');
-  const key1 = GasCrud.generateKey();
-  console.log(`Generated Key 1: ${key1}`);
-  
-  // Test case 2: Generate another key
-  console.log('Test case 2:');
-  const key2 = GasCrud.generateKey();
-  console.log(`Generated Key 2: ${key2}`);
-  
-  // Test case 3: Generate multiple keys
-  console.log('Test case 3:');
-  for (let i = 0; i < 5; i++) {
-    const key = GasCrud.generateKey();
-    console.log(`Generated Key ${i + 3}: ${key}`);
-  }
-  
-  console.log('Test cases completed.');
-}
-
 // Test the createRecord function
 function testCreateRecord() {
   try{
     // Case 1: Using an array of values
-    const dataArray = [GasCrud.generateKey(), "John", "Doe", "Bloomington", "IN"];
+    const dataArray = [GasCrud.generateKey(), "John", "Doe", "Mundelein", "IL"];
     GasCrud.createRecord(SPREADSHEET, SHEET_NAME, dataArray);
 
     // Case 2: Using an object with key-value pairs
@@ -43,8 +21,8 @@ function testCreateRecord() {
       id: GasCrud.generateKey(),
       firstName: "Jane",
       lastName: "Doe",
-      city: "Indianapolis",
-      state: "IN"
+      city: "Chicago",
+      state: "IL"
     };
     GasCrud.createRecord(SPREADSHEET, SHEET_NAME, dataObject);
 
@@ -63,8 +41,8 @@ function testCreateRecord() {
 }
 
 // Helper function to assert values
-function assertEqual(actual, expected, message) {
-  if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+function assertEqual(actualArray, expectedArray, message) {
+  if (JSON.stringify(actualArray) !== JSON.stringify(expectedArray)) {
     throw new Error(message);
   }
 }
@@ -72,50 +50,88 @@ function assertEqual(actual, expected, message) {
 // Test readRecord
 function testReadRecord() {
 
-  const readRange = "A1:E3";
-  const startColumn = 'A';
-  const endColumn = 'E';
+  const spreadsheet = SpreadsheetApp.openById(SPREADSHEET);
+  const sheet = spreadsheet.getSheetByName(SHEET_NAME);
   
-  // Test reading data without including the header row.
-  const expectedArrayWithoutHeader = [
-    ["7d62d7ed-b89a-4a8d-b24f-b2900bcb5e58", "John", "Doe", "Bloomington", "IN"],
-    ["a12a0088-3021-4eaf-b3b7-54e6eea3be7f", "Jane", "Doe", "Indianapolis", "IN"]
-  ];
-  const dataArrayWithoutHeader = GasCrud.readRecord(SPREADSHEET, SHEET_NAME, readRange, false);
-  assertEqual(dataArrayWithoutHeader, expectedArrayWithoutHeader, "Test case: Reading data without header.");
+  // Clear all existing data
+  sheet.clear();
+
+  // Restore the header row
+  const headers = ["ID", "FIRST NAME", "LAST NAME", "CITY", "STATE"];
+  GasCrud.createRecord(SPREADSHEET, SHEET_NAME, headers);
+
+  // Set test case
+  const firstColumn = 'A';
+  const lastColumn = 'E';
+  const firstKey = GasCrud.generateKey();
+  const secondKey = GasCrud.generateKey();
+  const thirdKey = GasCrud.generateKey();
+
+  const firstRow = {
+    id: firstKey,
+    firstName: "John",
+    lastName: "Doe",
+    city: "Mundelein",
+    state: "IL"
+  }
+  GasCrud.createRecord(SPREADSHEET, SHEET_NAME, firstRow);
+
+  const secondRow = {
+    id: secondKey,
+    firstName: "Jane",
+    lastName: "Doe",
+    city: "Chicago",
+    state: "IL"
+  }
+  GasCrud.createRecord(SPREADSHEET, SHEET_NAME, secondRow);
+
+  const thirdRow = {
+    id: thirdKey,
+    firstName: "Mary",
+    lastName: "Major"
+  }
+  GasCrud.createRecord(SPREADSHEET, SHEET_NAME, thirdRow);
+
+  // Test reading data.
+  const dataArray = GasCrud.readRecord(SPREADSHEET, SHEET_NAME, true, firstColumn, lastColumn);
   
-  // Test reading data including the header row.
-  const expectedArrayWithHeader = [
+  const expectedArray = [
     ["ID", "FIRST NAME", "LAST NAME", "CITY", "STATE"],
-    ["7d62d7ed-b89a-4a8d-b24f-b2900bcb5e58", "John", "Doe", "Bloomington", "IN"],
-    ["a12a0088-3021-4eaf-b3b7-54e6eea3be7f", "Jane", "Doe", "Indianapolis", "IN"]
+    [firstKey, "John", "Doe", "Mundelein", "IL"],
+    [secondKey, "Jane", "Doe", "Chicago", "IL"],
+    [thirdKey, "Mary", "Major", "", ""]
   ];
-  const dataArrayWithHeader = GasCrud.readRecord(SPREADSHEET, SHEET_NAME, readRange, true);
-  assertEqual(dataArrayWithHeader, expectedArrayWithHeader, "Test case: Reading data with header.");
-  
-  // Test reading data by columns without including the header row.
-  const expectedColumnDataWithoutHeader = [
-    ["7d62d7ed-b89a-4a8d-b24f-b2900bcb5e58", "John", "Doe", "Bloomington", "IN"],
-    ["a12a0088-3021-4eaf-b3b7-54e6eea3be7f", "Jane", "Doe", "Indianapolis", "IN"]
-  ];
-  const columnDataArrayWithoutHeader = GasCrud.readRecord(SPREADSHEET, SHEET_NAME, '', false, true, startColumn, endColumn);
-  assertEqual(columnDataArrayWithoutHeader, expectedColumnDataWithoutHeader, "Test case: Reading column data without header.");
-  
-  // Test reading data by columns including the header row.
-  const expectedColumnDataWithHeader = [
-    ["ID", "FIRST NAME", "LAST NAME", "CITY", "STATE"],
-    ["7d62d7ed-b89a-4a8d-b24f-b2900bcb5e58", "John", "Doe", "Bloomington", "IN"],
-    ["a12a0088-3021-4eaf-b3b7-54e6eea3be7f", "Jane", "Doe", "Indianapolis", "IN"]
-  ];
-  const columnDataArrayWithHeader = GasCrud.readRecord(SPREADSHEET, SHEET_NAME, '', true, true, startColumn, endColumn);
-  assertEqual(columnDataArrayWithHeader, expectedColumnDataWithHeader, "Test case: Reading column data with header.");
+
+  assertEqual(dataArray, expectedArray, "Something went wrong...");
 }
 
 // Test cases for the checkId function
 function testIsValidKey() {
   
+  const spreadsheet = SpreadsheetApp.openById(SPREADSHEET);
+  const sheet = spreadsheet.getSheetByName(SHEET_NAME);
+  
+  // Clear all existing data
+  sheet.clear();
+
+  // Restore the header row
+  const headers = ["ID", "FIRST NAME", "LAST NAME", "CITY", "STATE"];
+  GasCrud.createRecord(SPREADSHEET, SHEET_NAME, headers);
+
+  // Set test case
+  const firstKey = GasCrud.generateKey();
+
+  const firstRow = {
+    id: firstKey,
+    firstName: "John",
+    lastName: "Doe",
+    city: "Mundelein",
+    state: "IL"
+  }
+  GasCrud.createRecord(SPREADSHEET, SHEET_NAME, firstRow);
+  
   // Test case 1: Check for an existing key
-  const existingKey = '7d62d7ed-b89a-4a8d-b24f-b2900bcb5e58';
+  const existingKey = firstKey;
   console.log('Test case 1:');
   console.log(`Checking for an existing key: ${existingKey}`);
   const result1 = GasCrud.isValidKey(existingKey, SPREADSHEET, SHEET_NAME, KEY_COL);
@@ -133,17 +149,61 @@ function testIsValidKey() {
   console.log('Test cases completed.');
 }
   
-
 // Test getTailRows
 function testGetTailRows() {
-  try {
-    // Test case1: Retrieve the last 2 rows of data by columns from "A" to "C"
-    const result = GasCrud.getTailRows(2, SPREADSHEET, SHEET_NAME, "A", "C");
-    console.log("Test Case 2 Result:", result);
+  
+  const spreadsheet = SpreadsheetApp.openById(SPREADSHEET);
+  const sheet = spreadsheet.getSheetByName(SHEET_NAME);
+  
+  // Clear all existing data
+  sheet.clear();
 
-    // Test case2: Retrieve the last "2" rows of data by columns from "A" to "C"
+  // Restore the header row
+  const headers = ["ID", "FIRST NAME", "LAST NAME", "CITY", "STATE"];
+  GasCrud.createRecord(SPREADSHEET, SHEET_NAME, headers);
+
+  // Set test case
+  const firstKey = GasCrud.generateKey();
+  const secondKey = GasCrud.generateKey();
+  const thirdKey = GasCrud.generateKey();
+
+  const firstRow = {
+    id: firstKey,
+    firstName: "John",
+    lastName: "Doe",
+    city: "Mundelein",
+    state: "IL"
+  }
+  GasCrud.createRecord(SPREADSHEET, SHEET_NAME, firstRow);
+
+  const secondRow = {
+    id: secondKey,
+    firstName: "Jane",
+    lastName: "Doe",
+    city: "Chicago",
+    state: "IL"
+  }
+  GasCrud.createRecord(SPREADSHEET, SHEET_NAME, secondRow);
+
+  const thirdRow = {
+    id: thirdKey,
+    firstName: "Mary",
+    lastName: "Major"
+  }
+  GasCrud.createRecord(SPREADSHEET, SHEET_NAME, thirdRow);
+
+  try {
+    // Test case 1: Retrieve the last 2 rows of data by columns from "A" to "C"
+    const result = GasCrud.getTailRows(2, SPREADSHEET, SHEET_NAME, "A", "C");
+    console.log("Test Case 1 Result:", result);
+
+    // Test case 2: Retrieve the last "2" rows of data by columns from "A" to "C"
     const result2 = GasCrud.getTailRows("2", SPREADSHEET, SHEET_NAME, "A", "C");
     console.log("Test Case 2 Result:", result2);
+
+    // Test case 3: Retrieve the last 5 rows, when there are only 3.
+    const result3 = GasCrud.getTailRows(5, SPREADSHEET, SHEET_NAME, "A", "C");
+    console.log("Test Case 3 Result:", result3);
   
   } catch (err) {
     console.error("Error in testGetTailRows:", err.message);
@@ -153,11 +213,51 @@ function testGetTailRows() {
 // Test cases for the searchRecordByKey function
 function testSearchRecordByKey() {
   
+  const spreadsheet = SpreadsheetApp.openById(SPREADSHEET);
+  const sheet = spreadsheet.getSheetByName(SHEET_NAME);
+  
+  // Clear all existing data
+  sheet.clear();
+
+  // Restore the header row
+  const headers = ["ID", "FIRST NAME", "LAST NAME", "CITY", "STATE"];
+  GasCrud.createRecord(SPREADSHEET, SHEET_NAME, headers);
+
+  // Set test case
+  const firstKey = GasCrud.generateKey();
+  const secondKey = GasCrud.generateKey();
+  const thirdKey = GasCrud.generateKey();
+
+  const firstRow = {
+    id: firstKey,
+    firstName: "John",
+    lastName: "Doe",
+    city: "Mundelein",
+    state: "IL"
+  }
+  GasCrud.createRecord(SPREADSHEET, SHEET_NAME, firstRow);
+
+  const secondRow = {
+    id: secondKey,
+    firstName: "Jane",
+    lastName: "Doe",
+    city: "Chicago",
+    state: "IL"
+  }
+  GasCrud.createRecord(SPREADSHEET, SHEET_NAME, secondRow);
+
+  const thirdRow = {
+    id: thirdKey,
+    firstName: "Mary",
+    lastName: "Major"
+  }
+  GasCrud.createRecord(SPREADSHEET, SHEET_NAME, thirdRow);
+ 
   const firstCol = 'A';
   const lastCol = 'E';
 
   // Test case 1: Search for an existing record by key
-  const existingKey = "c5f3ef0b-6574-488a-9f81-9c0bb8cc3173";
+  const existingKey = firstKey;
   console.log('Test case 1:');
   console.log(`Searching for an existing record with key: ${existingKey}`);
   const result1 = GasCrud.searchRecordByKey(existingKey, SPREADSHEET, SHEET_NAME, KEY_COL, firstCol, lastCol);
@@ -175,12 +275,50 @@ function testSearchRecordByKey() {
 
 // Test case function for updateRecord function.
 function testUpdateRecord() {
+    
+  const spreadsheet = SpreadsheetApp.openById(SPREADSHEET);
+  const sheet = spreadsheet.getSheetByName(SHEET_NAME);
+  
+  // Clear all existing data
+  sheet.clear();
 
-  const headerArray = ["ID", "FIRST NAME", "LAST NAME", "CITY", "STATE"];
-  const keyLastRow = GasCrud.getTailRows(1, SPREADSHEET, SHEET_NAME, 'A', 'E')[0][0];
-  const updateRange = GasCrud.searchRecordByKey(keyLastRow, SPREADSHEET, SHEET_NAME, KEY_COL, 'A', 'E').range; 
+  // Restore the header row
+  const headers = ["ID", "FIRST NAME", "LAST NAME", "CITY", "STATE"];
+  GasCrud.createRecord(SPREADSHEET, SHEET_NAME, headers);
+
+  // Set test case
+  const firstKey = GasCrud.generateKey();
+  const secondKey = GasCrud.generateKey();
+  const thirdKey = GasCrud.generateKey();
+
+  const firstRow = {
+    id: firstKey,
+    firstName: "John",
+    lastName: "Doe",
+    city: "Mundelein",
+    state: "IL"
+  }
+  GasCrud.createRecord(SPREADSHEET, SHEET_NAME, firstRow);
+
+  const secondRow = {
+    id: secondKey,
+    firstName: "Jane",
+    lastName: "Doe",
+    city: "Chicago",
+    state: "IL"
+  }
+  GasCrud.createRecord(SPREADSHEET, SHEET_NAME, secondRow);
+
+  const thirdRow = {
+    id: thirdKey,
+    firstName: "Mary",
+    lastName: "Major"
+  }
+  GasCrud.createRecord(SPREADSHEET, SHEET_NAME, thirdRow);
+ 
+  const updateRange = GasCrud.searchRecordByKey(firstKey, SPREADSHEET, SHEET_NAME, KEY_COL, 'A', 'E').range; 
   const dataObject = {
-    "ID": keyLastRow,
+    "ID": "Temporary-ID-for-test",
     "FIRST NAME": "James",
     "LAST NAME": "Doe",
     "CITY": "Seoul",
@@ -188,21 +326,69 @@ function testUpdateRecord() {
   };
 
   // Call the updateRecord function
-  GasCrud.updateRecord(SPREADSHEET, SHEET_NAME, headerArray, updateRange, dataObject);
+  GasCrud.updateRecord(SPREADSHEET, SHEET_NAME, headers, updateRange, dataObject);
 
   // Retrieve the updated values from the spreadsheet
-  const updatedValues = GasCrud.searchRecordByKey(keyLastRow, SPREADSHEET, SHEET_NAME, KEY_COL, 'A', 'E').rowData;
+  const updatedValues = [GasCrud.searchRecordByKey("Temporary-ID-for-test", SPREADSHEET, SHEET_NAME, KEY_COL, 'A', 'E').rowData];
 
   // Replace these assertions with your specific test case expectations
-  const expectedValues = [[keyLastRow, "James", "Doe", "Seoul", "Korea"]];
+  const expectedValues = [["Temporary-ID-for-test", "James", "Doe", "Seoul", "Korea"]];
   assertEqual(updatedValues, expectedValues, "Values were not updated correctly.");
 }
 
 function testDeleteRecord() {
+      
+  const spreadsheet = SpreadsheetApp.openById(SPREADSHEET);
+  const sheet = spreadsheet.getSheetByName(SHEET_NAME);
+  
+  // Clear all existing data
+  sheet.clear();
 
-  const keyToDelete = GasCrud.getTailRows(1, SPREADSHEET, SHEET_NAME, 'A', 'E')[0][0];
+  // Restore the header row
+  const headers = ["ID", "FIRST NAME", "LAST NAME", "CITY", "STATE"];
+  GasCrud.createRecord(SPREADSHEET, SHEET_NAME, headers);
 
-  console.log(`Deleting row with key: ${keyToDelete}`);
-  GasCrud.deleteRecord(SPREADSHEET, SHEET_NAME, keyToDelete);
-  console.log('Test case completed.');
+  // Set test case
+  const firstKey = GasCrud.generateKey();
+  const secondKey = GasCrud.generateKey();
+  const thirdKey = GasCrud.generateKey();
+
+  const firstRow = {
+    id: firstKey,
+    firstName: "John",
+    lastName: "Doe",
+    city: "Mundelein",
+    state: "IL"
+  }
+  GasCrud.createRecord(SPREADSHEET, SHEET_NAME, firstRow);
+
+  const secondRow = {
+    id: secondKey,
+    firstName: "Jane",
+    lastName: "Doe",
+    city: "Chicago",
+    state: "IL"
+  }
+  GasCrud.createRecord(SPREADSHEET, SHEET_NAME, secondRow);
+
+  const thirdRow = {
+    id: thirdKey,
+    firstName: "Mary",
+    lastName: "Major"
+  }
+  GasCrud.createRecord(SPREADSHEET, SHEET_NAME, thirdRow);
+
+  console.log(`Deleting row with key: ${firstKey}`);
+  GasCrud.deleteRecord(SPREADSHEET, SHEET_NAME, firstKey);
+
+  // Test reading data.
+  const dataArray = GasCrud.readRecord(SPREADSHEET, SHEET_NAME, true, 'A', 'E');
+  
+  const expectedArray = [
+    ["ID", "FIRST NAME", "LAST NAME", "CITY", "STATE"],
+    [secondKey, "Jane", "Doe", "Chicago", "IL"],
+    [thirdKey, "Mary", "Major", "", ""]
+  ];
+
+  assertEqual(dataArray, expectedArray, "Something went wrong...");
 }
