@@ -1,11 +1,11 @@
-# GasCrud Library
+# Google Sheets CRUD Library
 
-GasCrud is a Google Apps Script library that allows you to perform Create, Read, Update, and Delete (CRUD) operations on Google Spreadsheets easily.
+A Google Apps Script library for Create, Read, Update, and Delete (CRUD) operations in Google Sheets. This library provides a set of functions to interact with Google Sheets, making it easy to manage data in your spreadsheet.
 
 ## Features
 
 - **Create Records:** Append new records to a Google Sheet.
-- **Read Records:** Read records from a Google Spreadsheet with options for specifying the range, including headers, and more.
+- **Read Records:** Read records from a Google Sheet and returns only non-empty cells, with options excluding headers.
 - **Update Records:** Update values in a specified range of a Google Spreadsheet.
 - **Delete Records:** Delete rows by matching a key value in a specified column.
 
@@ -36,23 +36,20 @@ To use this library, you can follow these steps:
 
 Here's a brief overview of the functions provided by this library:
 
-- `createRecord(spreadsheetId, sheetName, data)`: Appends a new record to a specified sheet in a Google Spreadsheet.
+- **`createRecord(spreadsheetId, sheetName, data)`**:
+  - Append a new record to a Google Sheet.
 
-- `readRecord(spreadsheetId, sheetName, readRange, includeHeader, readByColumn, firstColumn, lastColumn)`: Reads records from a Google Spreadsheet, allowing you to specify various options.
+- **`readRecord(spreadsheetId, sheetName, includeHeader, firstColumn, lastColumn)`**:
+  - Read records from a Google Sheet and return only non-empty cells. You can choose to include or exclude headers in the result.
 
-- `generateKey()`: Generates a unique key value to specify a record.
+- **`updateRecord(spreadsheetId, sheetName, headerArray, range, valueObject)`**:
+  - Update values in a specified range of a Google Spreadsheet. The `headerArray` should match the actual column names, and `valueObject` should contain the values to replace with.
 
-- `isValidKey(keyValue, spreadsheetId, sheetName, keyCol)`: Validates whether a given key value exists in a specified column of a Google Spreadsheet.
+- **`deleteRecord(spreadsheetId, sheetName, key)`**:
+  - Delete rows by matching a key value in a specified column.
 
-- `isInt(value)`: Checks if a value is an integer.
-
-- `getTailRows(n, spreadsheetId, sheetName, firstCol, lastCol)`: Returns the last `n` records from a specified sheet, optionally specifying columns.
-
-- `searchRecordByKey(key, spreadsheetId, sheetName, keyCol, firstCol, lastCol)`: Searches for a row with a matching key value and retrieves its data, row index, and range.
-
-- `updateRecord(spreadsheetId, sheetName, headerArray, range, valueObject)`: Updates values in a specified range of a Google Spreadsheet, allowing you to provide values by column name.
-
-- `deleteRecord(spreadsheetId, sheetName, key)`: Deletes a row in a Google Spreadsheet by matching a key value in a specified column.
+- **Additional Functions**:
+  - This library also includes other helpful functions for generating keys, validating keys, and more. Refer to the library source code for details on each function.
 
 ## Demo Google Sheet
 

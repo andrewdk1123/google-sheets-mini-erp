@@ -18,7 +18,8 @@
  */
 function createRecord(spreadsheetId, sheetName, data) {
   try {
-    const sheet = SpreadsheetApp.openById(spreadsheetId).getSheetByName(sheetName);
+    const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+    const sheet = spreadsheet.getSheetByName(sheetName);
 
     // Check if data is an object, and convert it to an array of values
     const values = Array.isArray(data) ? data : Object.values(data);
@@ -36,52 +37,27 @@ function createRecord(spreadsheetId, sheetName, data) {
  * Read records from a Google Spreadsheet, optionally including the header row.
  * @param {String} spreadsheetId - Google Sheet ID
  * @param {String} sheetName - Sheet name in the spreadsheet
- * @param {String} readRange - Spreadsheet range to read values. Do not include sheet name in the range! Example usage: "A1:G15"
- * @param {Boolean} includeHeader - True if you want to include the header row in the resulting array. Default is false.
- * @param {Boolean} readByColumn - True if you want to set range to read data by columns. Default is false.
- * @param {String} firstColumn - The first column to read range. Required when readByColumn is true.
- * @param {String} lastColumn - The last column to read range. Required when readByColumn is true.
+ * @param {Boolean} includeHeader - True if you want to include the header row in the resulting array. Default is true.
+ * @param {String} firstColumn - The first column in the Google Sheets range to read. 
+ * @param {String} lastColumn - The last column in the Google Sheets range to read. 
  * @return {Array} dataArray - An Array of data from the Google Sheet.
  */
-function readRecord(spreadsheetId, sheetName, readRange = '', includeHeader = true, readByColumn = false, firstColumn = '', lastColumn = '') {
+function readRecord(spreadsheetId, sheetName, includeHeader = true, firstColumn, lastColumn) {
   try {
-    if (readByColumn && (!firstColumn || !lastColumn)) {
-      throw new Error("When readByColumn is true, startColumn and endColumn are required.");
-    }
-
-    if (!readRange && !readByColumn) {
-      throw new Error("At least one of the readRange or readByColumn should be provided!");
-    }
-
     const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
     const sheet = spreadsheet.getSheetByName(sheetName);
-    let dataArray;
 
-    if (readByColumn) {
-      const columnRange = firstColumn + ':' + lastColumn;
-      dataArray = sheet.getRange(columnRange).getValues();
-      const numColumns = dataArray[0].length;
+    const columnRange = firstColumn + ':' + lastColumn;
+    const dataRange = sheet.getRange(columnRange);
+    
+    // Find the last non-empty cell in the column
+    const lastNonEmptyCell = dataRange.getNextDataCell(SpreadsheetApp.Direction.DOWN);
+    
+    // Get the values in the range up to the last non-empty cell
+    const numRows = lastNonEmptyCell.getRow();
+    const values = sheet.getRange(1, 1, numRows, dataRange.getNumColumns()).getValues();
 
-      // Iterate through rows in dataArray and check if all values in a row are empty
-      for (let row = 0; row < dataArray.length; row++) {
-        let allEmpty = true;
-        for (let col = 0; col < numColumns; col++) {
-          if (dataArray[row][col] !== null && dataArray[row][col] !== "") {
-            allEmpty = false;
-            break; // Exit the inner loop when a non-null value is found in a row
-          }
-        }
-        if (allEmpty) {
-          // If all values in a row are null, stop reading and return the data up to this point
-          dataArray = dataArray.slice(0, row);
-          break;
-        }
-      }
-    } else {
-      dataArray = sheet.getRange(readRange).getValues();
-    }
-
-    return includeHeader ? dataArray : dataArray.slice(1);
+    return includeHeader ? values : values.slice(1);
 
   } catch (err) {
     console.error('Failed with error: %s', err.message);
@@ -108,7 +84,7 @@ function generateKey() {
  */
 function isValidKey(keyValue, spreadsheetId, sheetName, keyCol) {
     // Read the key values from the specified column and check if keyValue exists
-    const keyList = readRecord(spreadsheetId, sheetName, '', false, true, keyCol, keyCol).flat();
+    const keyList = readRecord(spreadsheetId, sheetName, false, keyCol, keyCol).flat();
     return keyList.includes(keyValue);
 }
 
@@ -140,7 +116,7 @@ function getTailRows(n, spreadsheetId, sheetName, firstCol, lastCol) {
       throw new Error("When readByColumn is true, startColumn and endColumn are required.");
     }    
 
-    const dataArray = readRecord(spreadsheetId, sheetName, '', false, true, firstCol, lastCol);
+    const dataArray = readRecord(spreadsheetId, sheetName, false, firstCol, lastCol);
     const numRows = dataArray.length;
     const startRowIdx = numRows - Math.min(numRows, n);
     const tailRows = dataArray.slice(startRowIdx, numRows);
@@ -163,18 +139,39 @@ function getTailRows(n, spreadsheetId, sheetName, firstCol, lastCol) {
  * @return {Object} result - An object containing rowData, rowIndex, and range.
  */
 function searchRecordByKey(key, spreadsheetId, sheetName, keyCol, firstCol, lastCol) {
-  // Read the key values from the specified column and find the rowIndex of the matching key
-  const keyList = readRecord(spreadsheetId, sheetName, '', false, true, keyCol, keyCol);
-  const rowIndex = keyList.findIndex(item => item[0] === key);
+  try {
+    const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+    const sheet = spreadsheet.getSheetByName(sheetName);
+    
+    // Read the key values and data from the specified columns
+    const keyValues = sheet.getRange(keyCol + ":" + keyCol).getValues();
+    const dataRange = sheet.getRange(firstCol + ":" + lastCol);
+    const dataValues = dataRange.getValues();
 
-  if (rowIndex === -1) {
-    return { rowData: null, rowIndex: -1, range: null }; // Key not found
+    // Find the rowIndex of the matching key
+    const rowIndex = keyValues.findIndex(item => item[0] === key);
+
+    if (rowIndex === -1) {
+      return { rowData: null, rowIndex: -1, range: null }; // Key not found
+    }
+
+    // Extract the row data and range
+    const rowData = dataValues[rowIndex];
+    const range = `${firstCol}${rowIndex + 1}:${lastCol}${rowIndex + 1}`;
+
+    return {
+      rowData, 
+      rowIndex: rowIndex + 1, 
+      range 
+    };
+  } catch (err) {
+    console.error('Failed with error: %s', err.message);
+    return {
+      rowData: null,
+      rowIndex: -1,
+      range: null
+    };
   }
-
-  // Define the range and retrieve rowData for the matching row
-  const range = `${sheetName}!${firstCol}${rowIndex + 2}:${lastCol}${rowIndex + 2}`;
-  const rowData = readRecord(spreadsheetId, sheetName, range);
-  return { rowData, rowIndex: rowIndex + 2, range };
 }
 
 /**
@@ -186,7 +183,7 @@ function searchRecordByKey(key, spreadsheetId, sheetName, keyCol, firstCol, last
  * @return {Array} allRecords - An array containing rows of data
  */
 function getAllRecords(spreadsheetId, sheetName, firstCol, lastCol) {
-  const allRecords = readRecord(spreadsheetId, sheetName, '', false, true, firstCol, lastCol);
+  const allRecords = readRecord(spreadsheetId, sheetName, false, firstCol, lastCol);
   return allRecords;
 }
 
