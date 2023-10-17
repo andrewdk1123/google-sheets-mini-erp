@@ -1,10 +1,6 @@
 # Google Forms Product Registration
 
-This directory contains Google Apps Script code for registering products in a Google Spreadsheet using Google Forms.
-
-## Overview
-
-This Google Apps Script is part of the [Google Sheets Mini ERP project](https://github.com/andrewdk1123/google-sheets-mini-erp) by [andrewdklee.com](https://andrewdklee.com/). It enables you to create a registration form that populates a Google Form dropdown list with customer names from a Google Spreadsheet.
+This directory contains Google Apps Script codes for a product registration utilizing Google Forms and Google Spreadsheet integration. It retrieves customer names from a reference sheet and populates a dropdown list within the Google Form. This, in turn, validates customer names and simplifies the registration process for client-specific products that will be used in [SalesWebApp](https://github.com/andrewdk1123/google-sheets-mini-erp).
 
 ## Code Description
 
@@ -12,7 +8,7 @@ This Google Apps Script is part of the [Google Sheets Mini ERP project](https://
 
 - `getCustomerNames()`: Retrieves customer names from the Google Spreadsheet. It utilizes the `GasCrud` library to read data from the spreadsheet.
 
-- `populateCustomerDropdown()`: Populates a dropdown list in the Google Form with customer names. It retrieves customer names using `getCustomerNames()` and sets them as choices in the dropdown.
+- `populateCustomerDropdown()`: Populates a dropdown list in the Google Form with customer names. It sets retrieved customer names from `getCustomerNames()` as choice in the dropdown.
 
 ## Setup
 
@@ -36,14 +32,4 @@ Also set up constants at the beginning of the script:
 
 2. Set the constants at the beginning of the script with the appropriate IDs and sheet names.
 
-3. Share the Google Form with users who need to register products, and they will see the customer names in the dropdown.
-
-## License
-
-This code is provided under the terms of the [LICENSE](../LICENSE) included in this repository.
-
-For more information and updates, please visit the [Google Sheets Mini ERP project on GitHub](https://github.com/andrewdk1123/google-sheets-mini-erp).
-
-For support and inquiries, please reach out to [andrewdk1123@gmail.com](andrewdk1123@gmail.com).
-
-Happy product registration!
+3. Share the Google Form with users who need to register products, and the responses will be used in the [SalesWebApp](https://github.com/andrewdk1123/google-sheets-mini-erp).

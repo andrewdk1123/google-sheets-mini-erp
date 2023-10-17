@@ -4,14 +4,14 @@
  * Github: https:github.com/andrewdk1123/google-sheets-mini-erp
  * 
  * @OnlyCurrentDoc
- *
  * The above comment directs Apps Script to limit the scope of file access for this codes only. It specifies that the codes will only attempt to read or modify the files in which the functions below are used, and not all of the user's files. The authorization request message presented to users will reflect this limited scope.
  */
 
 // Set constants
 FORM_ID = "1CAqPut9N5iOxG8-vJYRoVOoqkcTzULUKtODp_ABupEE";
-SPREADSHEET_ID = "1VeYme8dpFxz1fDcHz1uzTb_rFh4zjsVyaCvLwKwt8BU";
+SPREADSHEET_ID = "1qAWHt4JsQxZsUnuV_MI9l_X8zB20fHG9GuvYc6ZDosw";
 REFERENCE_SHEET = "Customer Info";
+DESTINATION_SHEET = "Product Info";
 
 // Triggered when the form is opened
 function onOpen() {
@@ -23,7 +23,7 @@ function onOpen() {
  * @returns {Array} customerNames - A list of customer names
  */
 function getCustomerNames() {
-  const customerNames = GasCrud.readRecord(SPREADSHEET_ID, REFERENCE_SHEET, '', false, true, 'A', 'A');
+  const customerNames = GasCrud.readRecord(SPREADSHEET_ID, REFERENCE_SHEET, false, 'A', 'A');
   
   return customerNames;
 }
