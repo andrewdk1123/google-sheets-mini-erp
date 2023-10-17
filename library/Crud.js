@@ -200,16 +200,24 @@ function updateRecord(spreadsheetId, sheetName, headerArray, range, valueObject)
  * @param {String} spreadsheetId - Google Sheet ID
  * @param {String} sheetName - Sheet name in the spreadsheet
  * @param {String} key - Key value to match for row deletion
- * @param {String} keyColumn - Column letter (e.g., "A") containing the key values
+ * @param {String} keyColumn - Header of the column containing the key values
  */
-function deleteRecord(spreadsheetId, sheetName, key) {
+function deleteRecord(spreadsheetId, sheetName, key, keyColumn) {
   var spreadsheet = SpreadsheetApp.openById(spreadsheetId);
   var sheet = spreadsheet.getSheetByName(sheetName);
   var data = sheet.getDataRange().getValues();
-  
+
+  // Find the index of the key column
+  var keyColumnIndex = data[0].indexOf(keyColumn);
+
+  if (keyColumnIndex === -1) {
+    throw new Error("Key column not found in the spreadsheet");
+  }
+
   for (var i = data.length - 1; i >= 0; i--) {
-    if (data[i][0] === key) {
+    if (data[i][keyColumnIndex] === key) {
       sheet.deleteRow(i + 1); // Adjust for 1-based index
     }
   }
 }
+

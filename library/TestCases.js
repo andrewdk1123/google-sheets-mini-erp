@@ -1,7 +1,7 @@
 /**
  * Test cases for the functions in Crud.js
  * By: andrewdklee.com
- * Github: https:github.com/andrewdk1123/google-sheets-mini-erp
+ * Github: https:github.com/andrewdk1123/google-sheets-crud-app
  */
 
 // Set constants
@@ -337,10 +337,9 @@ function testUpdateRecord() {
 }
 
 function testDeleteRecord() {
-      
   const spreadsheet = SpreadsheetApp.openById(SPREADSHEET);
   const sheet = spreadsheet.getSheetByName(SHEET_NAME);
-  
+
   // Clear all existing data
   sheet.clear();
 
@@ -359,7 +358,7 @@ function testDeleteRecord() {
     lastName: "Doe",
     city: "Mundelein",
     state: "IL"
-  }
+  };
   GasCrud.createRecord(SPREADSHEET, SHEET_NAME, firstRow);
 
   const secondRow = {
@@ -368,22 +367,22 @@ function testDeleteRecord() {
     lastName: "Doe",
     city: "Chicago",
     state: "IL"
-  }
+  };
   GasCrud.createRecord(SPREADSHEET, SHEET_NAME, secondRow);
 
   const thirdRow = {
     id: thirdKey,
     firstName: "Mary",
     lastName: "Major"
-  }
+  };
   GasCrud.createRecord(SPREADSHEET, SHEET_NAME, thirdRow);
 
   console.log(`Deleting row with key: ${firstKey}`);
-  GasCrud.deleteRecord(SPREADSHEET, SHEET_NAME, firstKey);
+  GasCrud.deleteRecord(SPREADSHEET, SHEET_NAME, firstKey, "ID"); // Specify the key column as "A"
 
   // Test reading data.
   const dataArray = GasCrud.readRecord(SPREADSHEET, SHEET_NAME, true, 'A', 'E');
-  
+
   const expectedArray = [
     ["ID", "FIRST NAME", "LAST NAME", "CITY", "STATE"],
     [secondKey, "Jane", "Doe", "Chicago", "IL"],
