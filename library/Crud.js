@@ -83,10 +83,12 @@ function generateKey() {
  * @return {Boolean} - True if the key value exists, false otherwise.
  */
 function isValidKey(keyValue, spreadsheetId, sheetName, keyCol) {
-    // Read the key values from the specified column and check if keyValue exists
-    const keyList = readRecord(spreadsheetId, sheetName, false, keyCol, keyCol).flat();
-    return keyList.includes(keyValue);
+  var spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+  var sheet = spreadsheet.getSheetByName(sheetName);
+  var data = sheet.getRange(keyCol + '1:' + keyCol + sheet.getLastRow()).getValues().flat();
+  return data.includes(keyValue);
 }
+
 
 /**
  * Check if a value is an integer
