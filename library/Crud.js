@@ -1,7 +1,7 @@
 /**
  * Google Apps Script codes to Create, Read, Update, and Delete a record in a Google Spreadsheet
  * By: andrewdklee.com
- * Github: https:github.com/andrewdk1123/google-sheets-mini-erp
+ * Github: https:github.com/andrewdk1123/google-sheets-crud-app
  * REF:
  * https://developers.google.com/sheets/api/guides/values#append_values
  * https://developers.google.com/sheets/api/guides/values#read
@@ -113,7 +113,7 @@ function isInt(value) {
 function getTailRows(n, spreadsheetId, sheetName, firstCol, lastCol) {
   try {
     if (!isInt(n)) {
-      throw new Error("When readByColumn is true, startColumn and endColumn are required.");
+      throw new Error("Please enter an Integer value!");
     }    
 
     const dataArray = readRecord(spreadsheetId, sheetName, false, firstCol, lastCol);
@@ -172,19 +172,6 @@ function searchRecordByKey(key, spreadsheetId, sheetName, keyCol, firstCol, last
       range: null
     };
   }
-}
-
-/**
- * Get all records from a sheet, excluding headers
- * @param {String} spreadsheetId - Google Sheet ID
- * @param {String} sheetName - Sheet name in the spreadsheet
- * @param {String} firstCol - The first column in the row, e.g., "A"
- * @param {String} lastCol - The last column in the row, e.g., "G"
- * @return {Array} allRecords - An array containing rows of data
- */
-function getAllRecords(spreadsheetId, sheetName, firstCol, lastCol) {
-  const allRecords = readRecord(spreadsheetId, sheetName, false, firstCol, lastCol);
-  return allRecords;
 }
 
 /**
