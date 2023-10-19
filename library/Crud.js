@@ -89,7 +89,6 @@ function isValidKey(keyValue, spreadsheetId, sheetName, keyCol) {
   return data.includes(keyValue);
 }
 
-
 /**
  * Check if a value is an integer
  * @param {Number} value - A Number value to check
@@ -180,18 +179,16 @@ function searchRecordByKey(key, spreadsheetId, sheetName, keyCol, firstCol, last
  * Update values in a specified range of a Google Spreadsheet.
  * @param {String} spreadsheetId - Google Sheet ID
  * @param {String} sheetName - Sheet name in the spreadsheet
- * @param {Array} headerArray - Headers in the sheet
  * @param {String} range - Spreadsheet range to update values. Do not include sheet name in the range! Example usage: "A1:G15"
- * @param {Object} valueObject - Values to replace with in a row. Object attributes MUST match the actual column names!
+ * @param {Array} valuesArray - Array of values to replace with in a row. The order should match the order of headers in headerArray.
  */
-function updateRecord(spreadsheetId, sheetName, headerArray, range, valueObject) {
+function updateRecord(spreadsheetId, sheetName, range, valuesArray) {
   try {
     const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
     const sheet = spreadsheet.getSheetByName(sheetName);
-    const updaterange = sheet.getRange(range)
-    
-    const values = headerArray.map(headerArray => valueObject[headerArray]);
-    updaterange.setValues([values]);
+    const updaterange = sheet.getRange(range);
+
+    updaterange.setValues([valuesArray]);
   } catch (err) {
     console.log("Failed with error %s", err.message);
   }

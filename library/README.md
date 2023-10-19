@@ -42,8 +42,8 @@ Here's a brief overview of the functions provided by this library:
 - **`readRecord(spreadsheetId, sheetName, includeHeader, firstColumn, lastColumn)`**:
   - Read records from a Google Sheet and return only non-empty cells. You can choose to include or exclude headers in the result.
 
-- **`updateRecord(spreadsheetId, sheetName, headerArray, range, valueObject)`**:
-  - Update values in a specified range of a Google Spreadsheet. The `headerArray` should match the actual column names, and `valueObject` should contain the values to replace with.
+- **`updateRecord(spreadsheetId, sheetName, range, valueObject)`**:
+  - Update values in a specified range of a Google Spreadsheet. 
 
 - **`deleteRecord(spreadsheetId, sheetName, key)`**:
   - Delete rows by matching a key value in a specified column.

@@ -120,7 +120,6 @@ function testIsValidKey() {
 
   // Set test case
   const firstKey = GasCrud.generateKey();
-
   const firstRow = {
     id: firstKey,
     firstName: "John",
@@ -136,7 +135,8 @@ function testIsValidKey() {
   console.log(`Checking for an existing key: ${existingKey}`);
   const result1 = GasCrud.isValidKey(existingKey, SPREADSHEET, SHEET_NAME, KEY_COL);
 
-  assertEqual(result1, true, "Test case: Check for an existing key.");
+  console.log(result1);  
+  assertEqual(result1, true, "Test case: Check for an existing key did not pass.");
   
   // Test case 2: Check for a non-existing key
   const nonExistingKey = 'pseudo-key';
@@ -144,7 +144,8 @@ function testIsValidKey() {
   console.log(`Checking for a non-existing key: ${nonExistingKey}`);
   const result2 = GasCrud.isValidKey(nonExistingKey, SPREADSHEET, SHEET_NAME, KEY_COL);
 
-  assertEqual(result2, false, "Test case: Check for a non-existing key.");
+  console.log(result2);
+  assertEqual(result2, false, "Test case: Check for a non-existing key did not pass.");
   
   console.log('Test cases completed.');
 }
@@ -317,19 +318,14 @@ function testUpdateRecord() {
   GasCrud.createRecord(SPREADSHEET, SHEET_NAME, thirdRow);
  
   const updateRange = GasCrud.searchRecordByKey(firstKey, SPREADSHEET, SHEET_NAME, KEY_COL, 'A', 'E').range; 
-  const dataObject = {
-    "ID": "Temporary-ID-for-test",
-    "FIRST NAME": "James",
-    "LAST NAME": "Doe",
-    "CITY": "Seoul",
-    "STATE": "Korea"
-  };
+  const dataObject = ["Temporary-ID-for-test", "James", "Doe", "Seoul", "Korea"];
 
   // Call the updateRecord function
-  GasCrud.updateRecord(SPREADSHEET, SHEET_NAME, headers, updateRange, dataObject);
+  GasCrud.updateRecord(SPREADSHEET, SHEET_NAME, updateRange, dataObject);
 
   // Retrieve the updated values from the spreadsheet
   const updatedValues = [GasCrud.searchRecordByKey("Temporary-ID-for-test", SPREADSHEET, SHEET_NAME, KEY_COL, 'A', 'E').rowData];
+
 
   // Replace these assertions with your specific test case expectations
   const expectedValues = [["Temporary-ID-for-test", "James", "Doe", "Seoul", "Korea"]];
