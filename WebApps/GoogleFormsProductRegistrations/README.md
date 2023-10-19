@@ -18,6 +18,9 @@ Before using this code, you need to set the followings in the Google Contacts.
 
 - Sales representative have to add Contacts with a custom field as pre-defined (e.g., key: Connections, values: Sales). Then the customer lists will be retrieved from the Google Contacts to the Google Sheets. For more information about customer list retrieval, please see `getSalesConnections()` and `refreshCustomerInfo()` at [Code.js](../SalesWebApp/Code.js) in the SalesWebApp.
 
+- Do not limit the number of submissions and allow response editing. This will allow sales info manager to register multiple products and update product info.
+![](https://github.com/andrewdk1123/google-sheets-mini-erp/blob/main/setup-google-forms.jpg)
+
 Also set up constants at the beginning of the script:
 
 - `FORM_ID`: The ID of the Google Form you want to populate with customer names.
