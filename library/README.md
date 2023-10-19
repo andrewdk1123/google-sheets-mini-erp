@@ -50,9 +50,3 @@ Here's a brief overview of the functions provided by this library:
 
 - **Additional Functions**:
   - This library also includes other helpful functions for generating keys, validating keys, and more. Refer to the library source code for details on each function.
-
-## Demo Google Sheet
-
-You can access a demo Google Sheet to test and experiment with this library.
-
-[Open Demo Google Sheet](https://docs.google.com/spreadsheets/d/18grurtwkjYCNo2OoANzt6Dr2Q2H4fpHCv5MT9EoiNz4/edit?usp=drive_link)
