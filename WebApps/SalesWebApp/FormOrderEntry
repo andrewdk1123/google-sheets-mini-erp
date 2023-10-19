@@ -1,0 +1,73 @@
+<!-- HTML form for OrderEntry -->
+
+<form id="orderEntry" onsubmit="handleOrderEntry(this)">
+  <br>
+  <p class="h4 mb-4 text-center">Order Entry</p>
+  <div id="message"></div>
+  
+  <input type="text" id="orderId" name="orderId" value="" style="display: none">
+
+  <!-- Order Date Section -->
+  <div class="mb-1">
+    <label for="orderDate" class="form-label">Order Date</label>
+    <input type="date" id="orderDate" name="orderDate" class="form-control form-control-sm" required>
+  </div>
+
+  <!-- Customer Section -->
+  <div class="mb-1">
+    <div class="form-group col">
+      <label for="customerSelect" class="form-label">Customer</label>
+      <select class="form-select form-select-sm" id="customerSelect" name="customerSelect" required onchange="populateProductSelect(this.value)">
+        <!-- Customer options will be retrieved from customers Array defined in Code.gs doGet function -->
+        <? for (var i = 0; i < customers.length; i++) { ?>      
+        <option value="<?= customers[i].id ?>"><?= customers[i].name ?></option>
+        <? } ?>
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Product Section -->
+  <div class="mb-1">
+    <div class="form-group col">
+      <label for="productSelect" class="form-label">Product</label>
+      <select class="form-select form-select-sm" id="productSelect" name="productSelect" required>
+        <!-- Product options will be fetched by the selected customers[i].id from Customer Section -->
+      </select>
+    </div>
+  </div>
+
+  <!-- Quantity Section -->
+  <div class="mb-1">
+    <label for="orderQuantity" class="form-label">Quantity</label>
+    <input type="number" id="orderQuantity" name="orderQuantity" class="form-control" step="1" min="0" required>
+  </div>
+
+  <!-- Tax Section -->
+  <div class="mb-1">
+    <label class="form-label">Tax</label><br>
+    <div class="form-check form-check-inline">
+      <input type="radio" id="incl" name="tax" class="form-check-input" value="incl" required checked>
+      <label for="included" class="form-check-label">Included</label>
+    </div>
+    <div class="form-check form-check-inline">
+      <input type="radio" id="excl" name="tax" class="form-check-input" value="excl" required>
+      <label for="excluded" class="form-check-label">Not Included</label>
+    </div>
+  </div>
+
+  <!-- Note Section -->
+  <div class="mb-1">
+    <label for="orderNote" class="form-label">Note</label>
+    <textarea id="orderNote" name="orderNote" class="form-control form-control-sm" rows="4"></textarea>
+  </div>
+
+  <br>
+  <div class="container">
+    <div class="row">
+      <div class="col text-center">
+        <button type="submit" class="btn btn-primary mx-auto">Submit</button>
+      </div>
+    </div>
+  </div>
+</form>

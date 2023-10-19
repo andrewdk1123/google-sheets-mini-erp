@@ -1,0 +1,41 @@
+<br>
+
+<!-- Filter Form -->
+<form id="date-filter-form" class="date-filter-form" onsubmit="applyFilter(this)">
+  <input type="date" class="form-control date-input-left" id="startDate" name="startDate" placeholder="Start Date">
+  <span>-</span>
+  <input type="date" class="form-control date-input-right" id="endDate" name="endDate" placeholder="End Date">
+  <button type="submit" class="btn filter-button"><i class="material-icons">filter_alt</i></button>
+</form>
+
+<!-- Search Form -->
+<form id="search-form" class="form-inline" onsubmit="handleInvoiceSearchForm(this)">
+  <div class="input-group">
+    <input type="text" class="form-control form-control-sm mb-2" id="searchInoviceText" name="searchInvoiceText" placeholder="Search" required>
+    <button type="submit" class="btn btn-sm btn-primary mb-2"><i class="material-icons">search</i></button>
+  </div>
+</form>
+
+<!-- Data Table -->
+<div class="table-responsive">
+  <table class="table">
+    <thead>
+      <tr>
+        <th scope='col'>Action</th>
+        <th scope='col' style="display:none">orderId</th>
+        <th scope='col' style="display:none">customerId</th>
+        <th scope='col' style="display:none">productId</th>
+        <th scope='col'>Date</th>
+        <th scope='col'>Customer</th>
+        <th scope='col'>Product</th>
+        <th scope='col'>Qty</th>
+        <th scope='col'>Price</th>
+        <th scope='col'>Tax</th>
+        <th scope='col'>Note</th>
+      </tr>
+    </thead>
+    <tbody id="invoice-table-body">
+      <!-- The table body is populated by JavaScript -->
+    </tbody>
+  </table>
+</div>

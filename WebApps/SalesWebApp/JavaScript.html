@@ -1,0 +1,326 @@
+<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
+  integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
+
+<script>
+
+  // Prevent forms from submitting
+  function preventFormSubmit() {
+    var forms = document.querySelectorAll('form');
+    for (var i = 0; i < forms.length; i++) {
+      forms[i].addEventListener('submit', function(event) {
+      event.preventDefault();
+      });
+    }
+  }
+  window.addEventListener("load", functionInit, true); 
+  
+  // Initialize functions onload
+  function functionInit(){
+    $('#spinnerModal').modal('show');  
+    preventFormSubmit();
+    setDefaultDate();
+    loadCustomers(); 
+    getLastTenRows();
+  };
+
+  // Reload Customer Info sheet
+  function refreshCustomerInfo() {
+    $('#spinnerModal').modal('show');
+    google.script.run.withSuccessHandler(function() {
+      $('#spinnerModal').modal('hide');
+    }).refreshCustomerInfo();
+  }
+
+  //#region InvoicesTab
+
+  // Calculate one business day after the current date on the client
+  function getShippingDate() {
+    var currentDate = new Date();
+    var shippingDate = new Date(currentDate);
+
+    // Check if currentDate is Saturday (6). 
+    // If so, add 2 days, otherwise add 1 day to the shippingDate
+    if (currentDate.getDay() === 6) {
+      shippingDate.setDate(shippingDate.getDate() + 2);
+    } else {
+      shippingDate.setDate(shippingDate.getDate() + 1);
+    }
+
+    return shippingDate;
+  }
+
+  // Set default value for the orderDate
+  function setDefaultDate() {
+    var formattedDate = getShippingDate().toISOString().slice(0, 10);
+    document.getElementById("orderDate").value = formattedDate;
+  }
+
+  // Declare global variable for customer list
+  var customers;
+
+  // Function to load customer data when the page loads
+  function loadCustomers() {
+    google.script.run.withSuccessHandler(function (customerData) {
+      customers = customerData;
+      populateCustomerDropdown();
+    }).getCustomerList();
+  }
+
+  // Function to populate the "Customer" dropdown with customer options
+  function populateCustomerDropdown() {
+    var customerSelect = document.getElementById("customerSelect");
+    customerSelect.innerHTML = ''; // Clear previous options
+
+    var placeholderOption = document.createElement("option");
+    placeholderOption.value = '';
+    placeholderOption.text = '';
+    placeholderOption.disabled = true;
+    placeholderOption.selected = true;
+    customerSelect.appendChild(placeholderOption);
+    for (var i = 0; i < customers.length; i++) {
+      var option = document.createElement("option");
+      option.value = customers[i].id;
+      option.text = customers[i].name;
+      customerSelect.appendChild(option);
+    }
+  }
+
+  // Populate productSelect dropdown menu
+  function populateProductSelect(customer) {
+    google.script.run.withSuccessHandler(function (ar) {
+      var productSelect = document.getElementById('productSelect');
+      productSelect.length = 0;
+
+      var defaultOption = document.createElement("option");
+      defaultOption.value = '';
+      defaultOption.text = '';
+      productSelect.appendChild(defaultOption);
+
+      ar.forEach(function (product) {
+        var option = document.createElement("option");
+        option.value = product.id;  // Set the value property to the product ID
+        option.text = product.name; // Set the text property to the product name
+        productSelect.appendChild(option);
+      });
+    }).getProductList(customer);
+  }
+
+  // Handle form submission
+  function handleOrderEntry(formObject) {
+    $('#spinnerModal').modal('show');
+    google.script.run.withSuccessHandler(createInvoiceTable).processOrderEntry(formObject);
+    document.getElementById("orderEntry").reset();
+    setDefaultDate();
+  }
+
+  // Return the very last ten invoice records
+  function getLastTenRows() {
+    google.script.run.withSuccessHandler(createInvoiceTable).getLastTenOrders();
+  }
+
+  // Create invoice table for FormOrderEntry
+  function createInvoiceTable(dataArray) {
+    $('#spinnerModal').modal('hide');
+
+    var tableBody = document.getElementById('invoice-table-body');
+    tableBody.innerHTML = ''; // Clear existing rows
+
+    if (dataArray && dataArray.length) {
+      for (var i = 0; i < dataArray.length; i++) {
+        var result = "<tr>";
+
+        // Add a single cell for the buttons column
+        result += "<td>";
+        result += "<button type='button' class='btn btn-danger btn-custom deleteBtn' onclick='deleteOrderRecord(this);'>Del</button>";
+        result += "<button type='button' class='btn btn-warning btn-custom editBtn' onclick='editOrderRecord(this);'>Edit</button>";
+        result += "</td>";
+
+        // Hide Timestamp and ID cells
+        result += "<td data-order-id='" + dataArray[i][0] + "' style='display:none;'>" + dataArray[i][0] + "</td>";
+        result += "<td data-customer-id='" + dataArray[i][2] + "' style='display:none;'>" + dataArray[i][2] + "</td>";
+        result += "<td data-product-id='" + dataArray[i][4] + "' style='display:none;'>" + dataArray[i][4] + "</td>";
+
+        for (var j = 0; j < dataArray[i].length; j++) {
+          if ([1, 3, 5, 6, 7, 8].includes(j)) {
+            result += "<td>" + dataArray[i][j] + "</td>";
+          } else if (j === 9) {
+            var noteCell = document.createElement('td');
+            noteCell.textContent = dataArray[i][j] ? dataArray[i][j].substring(0, 5) + "..." : "";
+            result += noteCell.outerHTML;
+          } 
+        }
+
+        result += "</tr>";
+        tableBody.insertAdjacentHTML('beforeend', result);
+      }
+    } else {
+      tableBody.innerHTML = "Data not found!";
+    }
+  }
+
+  // From the closest table row where user hits delete button, find orderId and delete the record from the server-side
+  function deleteOrderRecord(button) {
+    // Display a confirmation dialog
+    var result = confirm("Want to delete?");
+  
+    if (result) {
+      // If the user confirms the deletion, show a spinner modal
+      $('#spinnerModal').modal('show');
+
+      // Find the closest <tr> (table row) containing the delete button
+      var row = button.closest('tr');
+
+      if (row) {
+        // Extract the orderId value from the hidden cell
+        var orderIdCell = row.querySelector('td:nth-child(2)'); 
+        var orderId = orderIdCell.textContent;
+
+        // Use google.script.run to call a server-side function
+        google.script.run.withSuccessHandler(createInvoiceTable).deleteRecordOnServer(orderId);
+      }
+    }
+  }
+
+  // From the closest table row where user hits delete button, find orderId and pops up original inputs to the form.
+  function editOrderRecord(button) {
+    // Find the closest <tr> (table row) containing the delete button
+    var row = button.closest('tr');
+
+    if (row) {
+      // Extract the orderId value from the hidden cell
+      var orderIdCell = row.querySelector('td:nth-child(2)'); 
+      var orderId = orderIdCell.textContent;
+
+      // Use google.script.run to call a server-side function
+      google.script.run.withSuccessHandler(populateForm).getRecordByIdOnServer(orderId);
+    }
+  }
+
+  // Populate form for the record to be updated
+  function populateForm(data){
+    $('#spinnerModal').modal('hide');
+    document.getElementById('orderId').value = data[0];
+    document.getElementById('orderDate').value = data[1];
+    document.getElementById('orderQuantity').value = data[6];
+    document.getElementById(data[8]).checked = true;
+    document.getElementById('orderNote').value = data[9];
+    document.getElementById("message").innerHTML = "<div class='alert alert-warning' role='alert'>Update Record [ID: "+data[1]+"]</div>";
+  }
+
+  // Search order records by text
+  function handleInvoiceSearchForm(formObject) {
+    $('#spinnerModal').modal('show');
+    google.script.run.withSuccessHandler(createInvoiceTable).searchOrderRecords(formObject);
+    document.getElementById("search-form").reset();
+  }
+
+  // Apply date filter in FormOrderRecords
+  function applyFilter(event) {
+    $('#spinnerModal').modal('show');
+    var startDate = document.getElementById('startDate').value;
+    var endDate = document.getElementById('endDate').value;
+    google.script.run.withSuccessHandler(createInvoiceTable).filterDataByDate(startDate, endDate);
+  }
+
+  //#endregion
+
+  //#region SalesInfoTab
+
+  // Event listener for the second tab.
+  document.addEventListener("DOMContentLoaded", function() {
+    // Get a reference to the "Sales Info" tab link
+    var tab2Link = document.getElementById("tab2-tab");
+
+    // Add an event listener to detect when the "Sales Info" tab is activated
+    tab2Link.addEventListener("click", function() {
+      $('#spinnerModal').modal('show');  
+      getProductRegistrations();
+    });
+  });
+
+  // Function to get product registrations
+  function getProductRegistrations() {
+    google.script.run.withSuccessHandler(createProductTable).getLastTenProducts();
+  }
+
+  // Create product data table to display
+  function createProductTable(dataArray) {
+    $('#spinnerModal').modal('hide');
+
+    var tableBody = document.getElementById('product-table-body');
+    tableBody.innerHTML = ''; // Clear existing rows
+
+    if (dataArray && dataArray.length) {
+      for (var i = 0; i < dataArray.length; i++) {
+        var result = "<tr>";
+
+        // Add a single cell for the buttons column
+        result += "<td>";
+        result += "<button type='button' class='btn btn-danger btn-custom deleteBtn' onclick='deleteProductRecord(this);'>Del</button>";
+        result += "<button type='button' class='btn btn-warning btn-custom editBtn' onclick='editProductRecord(this);'>Edit</button>";
+        result += "</td>";
+
+        // Hide Response url and product IDs
+        result += "<td data-response-url='" + dataArray[i][0] + "' style='display:none;'>" + dataArray[i][0] + "</td>";
+        result += "<td data-product-id='" + dataArray[i][1] + "' style='display:none;'>" + dataArray[i][1] + "</td>";
+
+        for (var j = 2; j < dataArray[i].length; j++) {
+          result += "<td>" + dataArray[i][j] + "</td>";
+        }
+
+        result += "</tr>";
+        tableBody.insertAdjacentHTML('beforeend', result);
+      }
+    } else {
+      tableBody.innerHTML = "Data not found!";
+    }
+  }
+
+  // From the closest table row where user hits delete button, find productId and delete the record from the server-side
+  function deleteProductRecord(button) {
+    // Display a confirmation dialog
+    var result = confirm("Want to delete?");
+  
+    if (result) {
+      // If the user confirms the deletion, show a spinner modal
+      $('#spinnerModal').modal('show');
+
+      // Find the closest <tr> (table row) containing the delete button
+      var row = button.closest('tr');
+
+      if (row) {
+        // Extract the orderId value from the hidden cell
+        var productIdCell = row.querySelector('td:nth-child(3)'); 
+        var productId = productIdCell.textContent;
+
+        // Use google.script.run to call a server-side function
+        google.script.run.withSuccessHandler(createProductTable).deleteProductOnServer(productId);
+      }
+    }
+  }
+
+  // From the closest table row where user hits delete button, find and open response url.
+  function editProductRecord(button) {
+    // Find the closest <tr> (table row) containing the edit button
+    var row = button.closest('tr');
+
+    if (row) {
+      // Extract the response URL value from the hidden cell
+      var responseUrlCell = row.querySelector('td[data-response-url]');
+      var responseUrl = responseUrlCell.textContent;
+      
+      window.open(responseUrl, '_blank');
+    }
+  }
+
+  // Search product records by text
+  function handleProductSearchForm(formObject) {
+    $('#spinnerModal').modal('show');
+    google.script.run.withSuccessHandler(createProductTable).searchProductRecords(formObject);
+    document.getElementById("search-form").reset();
+  }
+
+  //#endregion
+
+</script>
