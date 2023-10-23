@@ -37,7 +37,10 @@
         <a class="nav-link active" id="tab1-tab" data-bs-toggle="tab" href="#tab1" role="tab" aria-controls="tab1" aria-selected="true">Invoices</a>
       </li>
       <li class="nav-item" role="presentation">
-        <a class="nav-link" id="tab2-tab" data-bs-toggle="tab" href="#tab2" role="tab" aria-controls="tab2" aria-selected="false">Sales Info</a>
+        <a class="nav-link" id="tab2-tab" data-bs-toggle="tab" href="#tab2" role="tab" aria-controls="tab2" aria-selected="false">Production Order</a>
+      </li>
+      <li class="nav-item" role="presentation">
+        <a class="nav-link" id="tab3-tab" data-bs-toggle="tab" href="#tab3" role="tab" aria-controls="tab3" aria-selected="false">Sales Info</a>
       </li>
     </ul>
 
@@ -56,6 +59,18 @@
         </div>
       </div>
       <div class="tab-pane fade" id="tab2" role="tabpanel" aria-labelledby="tab2-tab">
+        <div class="container">
+          <div class="row">
+            <div class="col-md-4"> <!-- Left column with 30% width -->
+              <?!= include('FormStockEntry'); ?>
+            </div>
+            <div class="col-md-8"> <!-- Left column with 70% width -->
+              <?!= include('FormProductionOrder'); ?>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane fade" id="tab3" role="tabpanel" aria-labelledby="tab3-tab">
         <?!= include('FormSalesInfo'); ?>
       </div>
     </div>

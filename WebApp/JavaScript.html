@@ -33,7 +33,6 @@
   }
 
   //#region InvoicesTab
-
   // Calculate one business day after the current date on the client
   function getShippingDate() {
     var currentDate = new Date();
@@ -205,7 +204,7 @@
     document.getElementById('orderQuantity').value = data[6];
     document.getElementById(data[8]).checked = true;
     document.getElementById('orderNote').value = data[9];
-    document.getElementById("message").innerHTML = "<div class='alert alert-warning' role='alert'>Update Record [ID: "+data[1]+"]</div>";
+    document.getElementById("message").innerHTML = "<div class='alert alert-warning' role='alert'>Update Record [ID: "+data[0]+"]</div>";
   }
 
   // Search order records by text
@@ -225,15 +224,159 @@
 
   //#endregion
 
-  //#region SalesInfoTab
 
-  // Event listener for the second tab.
+  //#region ProductionOrderTab 
+  // Event listener for the third tab.
   document.addEventListener("DOMContentLoaded", function() {
     // Get a reference to the "Sales Info" tab link
     var tab2Link = document.getElementById("tab2-tab");
 
     // Add an event listener to detect when the "Sales Info" tab is activated
     tab2Link.addEventListener("click", function() {
+      $('#spinnerModal').modal('show');  
+      getProductionOrder();
+    });
+  });
+
+  // Function to get product registrations
+  function getProductionOrder() {
+    google.script.run.withSuccessHandler(createPoTable).getLastTenPo();
+  }
+
+  // Create invoice table for FormOrderEntry
+  function createPoTable(dataArray) {
+    $('#spinnerModal').modal('hide');
+
+    var tableBody = document.getElementById('po-table-body');
+    tableBody.innerHTML = ''; // Clear existing rows
+
+    if (dataArray && dataArray.length) {
+      var result = '';
+
+      for (var i = 0; i < dataArray.length; i++) {
+        result += "<tr>";
+
+        // Add a single cell for the buttons column
+        result += "<td>";
+        result += "<button type='button' class='btn btn-danger btn-custom deleteBtn' onclick='deleteStockRecord(this);'>Del</button>";
+        result += "<button type='button' class='btn btn-warning btn-custom editBtn' onclick='editStockRecord(this);'>Edit</button>";
+        result += "</td>";
+
+        // Hide ID cell
+        result += "<td data-po-id='" + dataArray[i][0] + "' style='display:none;'>" + dataArray[i][0] + "</td>";
+
+        // Add Production Date and Expiration cell
+        result += "<td>" + dataArray[i][1] + "</td>";
+        result += "<td>" + dataArray[i][2] + "</td>";
+
+        // Add Item cell
+        result += "<td>" + dataArray[i][3] + "</td>";
+
+        // Add Stock Qty cell
+        result += "<td>" + dataArray[i][4] + "</td>";
+
+        // Add Order Qty cell
+        result += "<td>" + dataArray[i][6] + "</td>";
+
+        // Add PO cell
+        result += "<td>" + dataArray[i][7] + "</td>";
+
+        // Add formatted Note cell
+        var noteCell = document.createElement('td');
+        noteCell.textContent = dataArray[i][8] ? dataArray[i][8].substring(0, 5) + "..." : "";
+        result += noteCell.outerHTML;
+ 
+      }
+
+      result += "</tr>";
+      tableBody.insertAdjacentHTML('beforeend', result);
+
+    } else {
+      tableBody.innerHTML = "Data not found!";
+    }
+  }
+
+  // From the closest table row where user hits delete button, find orderId and delete the record from the server-side
+  function deleteStockRecord(button) {
+    // Display a confirmation dialog
+    var result = confirm("Want to delete?");
+  
+    if (result) {
+      // If the user confirms the deletion, show a spinner modal
+      $('#spinnerModal').modal('show');
+
+      // Find the closest <tr> (table row) containing the delete button
+      var row = button.closest('tr');
+
+      if (row) {
+        // Extract the orderId value from the hidden cell
+        var poIdCell = row.querySelector('td:nth-child(2)'); 
+        console.log(poIdCell);
+        var poId = poIdCell.textContent;
+
+        // Use google.script.run to call a server-side function
+        google.script.run.withSuccessHandler(createPoTable).deletePoOnServer(poId);
+      }
+    }
+  }
+
+  // From the closest table row where user hits delete button, find orderId and pops up original inputs to the form.
+  function editStockRecord(button) {
+    // Find the closest <tr> (table row) containing the delete button
+    var row = button.closest('tr');
+
+    if (row) {
+      // Extract the orderId value from the hidden cell
+      var poIdCell = row.querySelector('td:nth-child(2)'); 
+      var poId = poIdCell.textContent;
+
+      // Use google.script.run to call a server-side function
+      google.script.run.withSuccessHandler(populateStock).getStockByIdOnServer(poId);
+    }
+  }
+
+  // Populate form for the record to be updated
+  function populateStock(data){
+    $('#spinnerModal').modal('hide');
+    document.getElementById('poId').value = data[0];
+    document.getElementById('productionDate').value = data[1];
+    document.getElementById('expirationDate').value = data[2];
+    document.getElementById('itemSelect').value = data[3];
+    document.getElementById('stockQuantity').value = data[4]
+    document.getElementById('stockNote').value = data[8];
+    document.getElementById("stockMessage").innerHTML = "<div class='alert alert-warning' role='alert'>Update Stock [ID: "+data[0]+"]</div>";
+  }
+
+  // Handle form submission
+  function handleStockEntry(formObject) {
+    $('#spinnerModal').modal('show');
+    google.script.run.withSuccessHandler(createPoTable).processStockEntry(formObject);
+    document.getElementById("stockEntry").reset();
+  }
+    
+  function reloadPo(formObject) {
+    $('#spinnerModal').modal('show');
+    google.script.run.withSuccessHandler(createPoTable).updatePo(formObject);
+  }
+
+  // Search order records by text
+  function handlePoSearchForm(formObject) {
+    $('#spinnerModal').modal('show');
+    google.script.run.withSuccessHandler(createPoTable).searchPoRecords(formObject);
+    document.getElementById("po-search-form").reset();
+  }
+
+  //#endregion
+
+
+  //#region SalesInfoTab
+  // Event listener for the second tab.
+  document.addEventListener("DOMContentLoaded", function() {
+    // Get a reference to the "Sales Info" tab link
+    var tab3Link = document.getElementById("tab3-tab");
+
+    // Add an event listener to detect when the "Sales Info" tab is activated
+    tab3Link.addEventListener("click", function() {
       $('#spinnerModal').modal('show');  
       getProductRegistrations();
     });
@@ -318,7 +461,7 @@
   function handleProductSearchForm(formObject) {
     $('#spinnerModal').modal('show');
     google.script.run.withSuccessHandler(createProductTable).searchProductRecords(formObject);
-    document.getElementById("search-form").reset();
+    document.getElementById("prod-search-form").reset();
   }
 
   //#endregion

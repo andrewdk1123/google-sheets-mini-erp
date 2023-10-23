@@ -1,7 +1,6 @@
 /**
  * Part of server-side codes for Google Sheets sales management webapp with CRUD operations.
- * This script is designed to provide server-side functionality for a web application that manages sales data in a Google Sheets document. 
- * It includes constants for defining settings on Google Sheets and functions to display the web interface.
+ * This script is designed to provide server-side functionality for a web application that manages sales data in a Google Sheets document and includes constants for defining settings on Google Sheets and functions to display the web interface.
  * By: andrewdklee.com
  * Github: https://github.com/andrewdk1123/google-sheets-mini-erp
  */
@@ -13,7 +12,12 @@ const FORM = "1CAqPut9N5iOxG8-vJYRoVOoqkcTzULUKtODp_ABupEE";
 const INVOICE = "Invoices";
 const INVOICE_KEY_COL = "A";
 const INVOICE_FIRST_COL = "A";
-const INVOICE_LAST_COL = "J";
+const INVOICE_LAST_COL = "N";
+
+const PO = "Production Order";
+const PO_KEY_COL = "A";
+const PO_FIRST_COL = "A";
+const PO_LAST_COL = "I";
 
 const CUSTOMER_INFO = "Customer Info";
 const CUSTOMER_KEY_COL = "B";
@@ -23,7 +27,7 @@ const CUSTOMER_LAST_COL = "B";
 const PRODUCT_INFO = "Product Info";
 const PRODUCT_KEY_COL = "E";
 const PRODUCT_FIRST_COL = "A";
-const PRODUCT_LAST_COL = "I";
+const PRODUCT_LAST_COL = "M";
 const PRODUCT_RESPONSE_URL = "B";
 
 // Display HTML page.
@@ -43,7 +47,7 @@ function include(filename) {
 /**
  * Formatting Date values to a String with KST (Korea Standard Time).
  * @param {Date} date - The Date object to be formatted.
- * @returns {string} The formatted date in the "yyyy-MM-dd" format with KST.
+ * @returns {string} formattedDate - The formatted date in the "yyyy-MM-dd" format with KST.
  */
 function convertDateToYYYYMMDD(date) {
   const formattedDate = Utilities.formatDate(date, "Asia/Seoul", "yyyy-MM-dd").toString();
@@ -52,7 +56,7 @@ function convertDateToYYYYMMDD(date) {
 
 /**
  * Get an Array of customer Objects with id and name attributes from the Customer Info sheet.
- * @return {Array} - An Array of objects containing customer Objects.
+ * @return {Array} customerList - An Array of objects containing customer Objects.
  */
 function getCustomerList() {
   const customerData = GasCrud.readRecord(SPREADSHEET, CUSTOMER_INFO, false, CUSTOMER_FIRST_COL, CUSTOMER_LAST_COL);
@@ -66,13 +70,13 @@ function getCustomerList() {
   return customerList;
 }
 
-// Declare a global variable to store customers.
+// Declare a global variable to store customerList.
 var customers = getCustomerList();
 
 /**
- * Get product names and ids for a given customer ID.
+ * Get an Array of product data containing id, name, price, and number of product configuring items for a given customer ID.
  * @param {string} selectedCustomerId - Customer ID provided from customerSelect form.
- * @return {Array} productList - An array of objects containing product data.
+ * @return {Array} productList - An array of Objects containing product data.
  */
 function getProductList(selectedCustomerId) {
   const prodData = GasCrud.readRecord(SPREADSHEET, PRODUCT_INFO, false, PRODUCT_FIRST_COL, PRODUCT_LAST_COL);
@@ -83,6 +87,10 @@ function getProductList(selectedCustomerId) {
       id: row[4],
       name: row[5],
       price: row[7],
+      numChikuwa: row[9],
+      numJakoten: row[10],
+      numKamaboko: row[11],
+      numNarutomaki: row[12]
     }));
 
   return productList;
@@ -95,9 +103,11 @@ function getProductList(selectedCustomerId) {
  * @param {Object} event - The event object triggered by the form submission.
  */
 function onFormSubmit(event) {
+  
+  // Set an identifier for the new submission.
   setProductId();
-  splitProdConfig();
 
+  // Find customerId for submitted customerName.
   var customerName = event.values[1]; 
   var customerId = getCustomerId(customerName);
     
@@ -109,10 +119,14 @@ function onFormSubmit(event) {
     sheet.getRange(lastRow, customerIDColumn).setValue(customerId);
   }
 
+  // Set response url for the submission.
   setResponseUrl();
 }
 
-// get customer ID based on customer name values from Google Forms.
+/**
+ * Get customer ID based on customer name values from Google Forms.
+ * @param {String} customerName - Name of the customer (organization name).
+ */
 function getCustomerId(customerName) {
   for (const customerId in customers) {
     if (customers[customerId].name === customerName) {
@@ -131,27 +145,6 @@ function setProductId() {
   
   // Write the Product ID to the last row in the "Product ID" column.
   sheet.getRange(lastRow, productIDColumn).setValue(productId);
-}
-  
-// Split Product Configuration column.
-function splitProdConfig() {
-  const DELIMITER = ', '; // Use a comma and a space as the delimiter
-  const spreadsheet = SpreadsheetApp.openById(SPREADSHEET);
-  const sheet = spreadsheet.getSheetByName(PRODUCT_INFO);
-  
-  var lastRow = sheet.getLastRow();
-  var splitRange = sheet.getRange('I2:I' + lastRow);
-  var values = splitRange.getValues();
-  
-  for (let r = 0; r < values.length; r++) {
-    var text = values[r][0]; // Access the text in the 'H' column
-    var splitText = text.split(DELIMITER); // Split the text into an array
-  
-    // Write the split values to the adjacent column, starting from column 'J'
-    for (var i = 0; i < splitText.length; i++) {
-      sheet.getRange(r + 2, 10 + i).setValue(splitText[i]);
-    }
-  }
 }
 
 // Set Google Forms url for response editing.

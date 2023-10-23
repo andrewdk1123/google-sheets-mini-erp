@@ -1,7 +1,8 @@
 <br>
+<br>
 
 <!-- Search Form -->
-<form id="search-form" class="form-inline" onsubmit="handleProductSearchForm(this)">
+<form id="prod-search-form" class="form-inline" onsubmit="handleProductSearchForm(this)">
   <div class="input-group">
     <input type="text" class="form-control form-control-sm mb-2" id="searchProductText" name="searchProductText" placeholder="Search" required>
     <button type="submit" class="btn btn-sm btn-primary mb-2"><i class="material-icons">search</i></button>

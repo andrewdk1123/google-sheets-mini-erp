@@ -1,0 +1,37 @@
+<br>
+
+<!-- Production Date Section -->
+<form id="po-date-form" class="po-date-form" onsubmit="reloadPo(this)">
+  <input type="date" id="productionDate" name="productionDate" class="form-control po-date-input" required>
+  <button type="submit" class="btn po-button"><i class="material-icons">conveyor_belt</i></button>
+</form>
+
+<!-- Search Form -->
+<form id="po-search-form" class="form-inline" onsubmit="handlePoSearchForm(this)">
+  <div class="input-group">
+    <input type="text" class="form-control form-control-sm mb-2" id="searchPoText" name="searchPoText" placeholder="Search" required>
+    <button type="submit" class="btn btn-sm btn-primary mb-2"><i class="material-icons">search</i></button>
+  </div>
+</form>
+
+<!-- Data Table -->
+<div class="table-responsive">
+  <table class="table">
+    <thead>
+      <tr>
+        <th scope='col'>Action</th>
+        <th scope='col' style="display:none">stockId</th>
+        <th scope='col'>Prod Date</th>
+        <th scope='col'>Exp Date</th>
+        <th scope='col'>Item</th>
+        <th scope='col'>Stock</th>
+        <th scope='col'>Order</th>
+        <th scope='col'>P.O.</th>
+        <th scope='col'>Note</th>
+      </tr>
+    </thead>
+    <tbody id="po-table-body">
+      <!-- The table body is populated by JavaScript -->
+    </tbody>
+  </table>
+</div>
