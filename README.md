@@ -13,8 +13,12 @@ Welcome to the Google Sheets Mini ERP repository. This project was created to su
   - [Code Description](#codedescription)
   - [Setup](#setup)
 - [SalesWebApp](#saleswebapp)
-- [Server-Side Script](#server-side-script)
-- [Web Interface](#web-interface)
+  - [Configurations](#configurations)
+  - [Server-Side Script](#server-side-script)
+    - [Invoice Tab](#invoicestab)
+    - [Production Order Tab](#productionordertab)
+    - [Sales Info Tab](#salesinfotab)
+  - [Web Interface](#web-interface)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -98,6 +102,8 @@ Before using this code, you need to set the followings in the Google Contacts.
 
 - Do not limit the number of submissions and allow response editing. This will allow sales info manager to register multiple products and update product info. 
 
+<a href="https://imgur.com/TxVAABK"><img src="https://i.imgur.com/TxVAABK.jpg" title="source: imgur.com" /></a>
+
 Also set up constants at the beginning of the script:
 
 `FORM_ID`: The ID of the Google Form you want to populate with customer names.
@@ -116,9 +122,20 @@ Before using SalesWebApp, you should configure the following constants in the `U
 - `FORM`: The ID of the Google Form for product registration.
 - Constants related to data sheet names and column identifiers (e.g., `INVOICE`, `CUSTOMER_INFO`, `PRODUCT_INFO`).
 
+Additionally, you may need to adjust timezone for the function `convertDateToYYYYMMDD(date)` in the Utilities.js file. It is a function to convert Date value stored in the Google Sheet into a String with KST. Feel free to adjust timezone.
+
+```
+function convertDateToYYYYMMDD(date) {
+  const formattedDate = Utilities.formatDate(date, "Asia/Seoul", "yyyy-MM-dd").toString();
+  return formattedDate;
+}
+```
+
 ### Server-Side Script
 
-The heart of SalesWebApp is the `Utilities.gs` script. It provides the server-side functionality for handling sales data. The script includes functions for:
+There are two server-side script files, `Utilities.js` and `Databases.js`. 
+
+The `Utilities.js` provides the server-side functionality for handling sales data. The script includes functions for:
 
 - Formatting date values to a string with KST (Korea Standard Time).
 - Retrieving a list of customers from the Google Sheets document.
@@ -127,14 +144,64 @@ The heart of SalesWebApp is the `Utilities.gs` script. It provides the server-si
 - Splitting product configurations and writing them to the sheet.
 - Setting Google Forms URLs for response editing.
 
-The server-side script ensures that your sales data is managed efficiently and accurately within Google Sheets.
+The `Databases.js` provides server-side functionality for CRUD operations in the Google Sheets. The script includes functions for:
 
-## Web Interface
+- Process submitted order entry forms.
+- Retrieve the last 10 records for order, P.O., and product registrations.
+- Search records.
+- Filter records.
+- Delete records.
 
-SalesWebApp also offers a web interface for user interaction. This interface is served through Google Apps Script and Google Apps Script HTML service. It includes:
+### Web Interface
 
-- A web form for product registration, which triggers the server-side script.
-- Functions for retrieving lists of customers and products based on user interactions.
+[SalesWebApp](https://script.google.com/macros/s/AKfycbx9HzfsSn5MVL7sW2a_MieWYmn1OZOJ8GdltI2cIe_Ed9wwF2cdLQp-nOhrJsoBFnjy/exec)
+
+SalesWebApp also offers a web interface for user interaction. This interface is served through Google Apps Script and Google Apps Script HTML service. 
+
+In the header, there are three green-colored buttons: `Reload Customer List`, `Register New Customers`, and `Register New Products`, respectively.
+
+The `Reload Customer List` retrieves customer names and source ID values from the Google Contacts, after applying filter on the user-defined field. In the case when the account owner of the Google Contacts and the actual sales representative is different, the account owner may delegate access to the Contacts to the responsible person.
+
+<a href="https://imgur.com/cvIpE2D"><img src="https://i.imgur.com/cvIpE2D.jpg" title="source: imgur.com" /></a>
+
+`Register New Customers` and `Register New Products` provides links to Google Contacts app and Google Forms, respectively.
+
+The SalesWebApp also includes three tabs:
+
+#### Invoices Tab
+<a href="https://imgur.com/nx4PQSW"><img src="https://i.imgur.com/nx4PQSW.jpg" title="source: imgur.com" /></a>
+
+The invoices tab is where the bookkeepers take new orders or update/delete an existing orders.
+
+In the tab, the `Products` dropdown is dependent on `Customers`, so that depending on the user selection on the customer, it provides different set of registered products. This helps maintaining data integration, especially when the price or other configurations of a product is dependent on the customer.
+
+The default setting for the Order Date is to use the _**shipping date**_. The shipping date is defined as follows: If today is a Saturday, please add 2 days to the Order Date; otherwise, add 1 day. This is the setting that how my factory operates. So, you may need to change the settings in the `JavaScript.html` file, `getShippingDate()` function.
+
+Additionally, the tap provides an interface to filter and search past order records on the right side.
+
+#### Production Order Tab
+<a href="https://imgur.com/avJqKHf"><img src="https://i.imgur.com/avJqKHf.jpg" title="source: imgur.com" /></a>
+
+The production order tab is where the GAS calculates the amount of product configuring items. For each product of sellings, there are pre-defined sets of numbers for the configuring items. For example, in the fake demo data I registered, there is a product named "Premium Fishcake Mix 400g" which is configured by: 
+
+<a href="https://imgur.com/0PfW829"><img src="https://i.imgur.com/0PfW829.jpg" title="source: imgur.com" /></a>
+
+For each date of orders, the P.O. tab aggregates each configuring items to produce.
+
+Please note that you MUST enter the left over from the yesterday first.
+
+Also note that when you create Stock leftover record, production date is the actual date when the item is produced, which is one or two day before the order date from the invoices tab.
+
+You can also update the amount of P.O. by clicking the blue conveyor belt button on the top right side. This allows users to update the P.O. in the middle of the day.
+
+#### Sales Info Tab
+<a href="https://imgur.com/85a68lw"><img src="https://i.imgur.com/85a68lw.jpg" title="source: imgur.com" /></a>
+
+The sales info tab is where you can search and edit/delete product registrations. To register a new product, you should click the green-colored `Register New Products` button in the header.
+
+If you hit the `Edit` button for a product registration, it will open the associated Google Forms link, so that you can update the product information.
+
+If you hit the `Delete` button for a product registration, it will delete the record in the Google Sheet, so that users will no longer see the product when he/she tries to take a new order. Note that deleting product registration will not delete any previous invoice records. Also note that it will not delete the response from the Google Forms; it will only delete the record in the Google Sheets.
 
 ## Contributing
 
